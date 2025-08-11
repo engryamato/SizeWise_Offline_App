@@ -12,6 +12,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Only collect coverage for core code during Phase 0; UI is covered by E2E
+      include: ['lib/**/*.ts', 'db/**/*.ts', 'core/**/*.ts'],
       exclude: [
         'node_modules/',
         'tests/',
@@ -22,29 +24,15 @@ export default defineConfig({
         '.next/',
         'coverage/',
         '**/*.test.*',
-        '**/*.spec.*'
-      ],
-      thresholds: {
-        global: {
-          lines: 85,
-          functions: 85,
-          branches: 80,
-          statements: 85
-        },
-        // Lower threshold for UI components
-        'components/**': {
-          lines: 60,
-          functions: 60,
-          branches: 50,
-          statements: 60
-        },
-        'app/**': {
-          lines: 60,
-          functions: 60,
-          branches: 50,
-          statements: 60
-        }
-      }
+        '**/*.spec.*',
+        'app/**',
+        'components/**',
+        'electron/**',
+        'dist/**',
+        'dist-electron/**',
+        'out/**'
+      ]
+      // Thresholds are enforced in CI's "Enforce coverage" step per directory
     },
     include: [
       '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',

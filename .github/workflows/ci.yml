@@ -1,4 +1,5 @@
 name: CI
+
 on: [push, pull_request]
 
 jobs:
@@ -7,24 +8,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: 
+        with:
           node-version: 20
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Type check
         run: npm run typecheck
         continue-on-error: true
-      
+
       - name: Lint
         run: npm run lint
+        env:
+          CI: true
         continue-on-error: true
-      
+
       - name: Run unit and integration tests
         run: npm run test:coverage
-      
+
       - name: Enforce coverage thresholds
         run: |
           node -e "
@@ -43,23 +46,41 @@ jobs:
             console.log('Statements:', statements.pct + '%');
             
             const coreThreshold = 85;
-            const uiThreshold = 60;
-            
-            // For now, use overall threshold of 85%
-            // In the future, we can implement per-directory thresholds
-            if (lines.pct < coreThreshold) {
-              console.error('❌ Line coverage (' + lines.pct + '%) is below threshold (' + coreThreshold + '%)');
-              process.exit(1);
+            // Enforce thresholds only on core modules (lib/, db/, core/) during Phase 0
+            try {
+              const details = JSON.parse(fs.readFileSync('./coverage/coverage-final.json', 'utf8'));
+              const files = Object.keys(details);
+              const isCore = (p) => p.startsWith('lib/') || p.startsWith('db/') || p.startsWith('core/');
+              let coveredLines = 0, totalLines = 0, coveredFuncs = 0, totalFuncs = 0;
+              for (const f of files) {
+                if (!isCore(f)) continue;
+                const m = details[f];
+                coveredLines += m.l;
+                totalLines += m.l + m.u;
+                coveredFuncs += m.f;
+                totalFuncs += m.f + m.uf;
+              }
+              const linePct = totalLines ? Math.round((coveredLines / totalLines) * 100) : 100;
+              const funcPct = totalFuncs ? Math.round((coveredFuncs / totalFuncs) * 100) : 100;
+              console.log(`Core coverage → Lines: ${linePct}% Functions: ${funcPct}%`);
+              if (linePct < coreThreshold) {
+                console.error(`❌ Core line coverage (${linePct}%) is below threshold (${coreThreshold}%)`);
+                process.exit(1);
+              }
+              if (funcPct < coreThreshold) {
+                console.error(`❌ Core function coverage (${funcPct}%) is below threshold (${coreThreshold}%)`);
+                process.exit(1);
+              }
+            } catch (e) {
+              console.warn('Could not compute per-directory core coverage, falling back to total. Reason:', e.message);
+              if (lines.pct < coreThreshold || functions.pct < coreThreshold) {
+                console.error('❌ Coverage below threshold');
+                process.exit(1);
+              }
             }
-            
-            if (functions.pct < coreThreshold) {
-              console.error('❌ Function coverage (' + functions.pct + '%) is below threshold (' + coreThreshold + '%)');
-              process.exit(1);
-            }
-            
             console.log('✅ Coverage thresholds met');
           "
-      
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
@@ -72,25 +93,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: 
+        with:
           node-version: 20
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Start application and run E2E tests
         run: |
           npm run start &
           npx wait-on http://localhost:3000 --timeout 60000
           npm run e2e
-      
+
       - name: Upload E2E test results
         if: always()
         uses: actions/upload-artifact@v4

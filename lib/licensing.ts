@@ -16,12 +16,16 @@ export async function bootstrapLicense(){
   const cur = readLS();
   if (!cur) {
     const trialDays = 14;
-    const state = { edition: 'trial', install_at: now, trial_ends_at: now + trialDays*86400000, last_run_at: now };
+    const state = { edition: 'trial', install_at: now, trial_ends_at: now + trialDays*86400000, last_run_at: now, clock_tamper_detected: false };
     writeLS(state);
     return state;
   }
   // clock tamper detection (basic): if now < last_run_at by more than 24h, drop to free
-  if (now + 86400000 < cur.last_run_at) { cur.edition = 'free'; }
+  const clockTamperDetected = now + 86400000 < cur.last_run_at;
+  if (clockTamperDetected) {
+    cur.edition = 'free';
+    cur.clock_tamper_detected = true;
+  }
   cur.last_run_at = now;
   if (cur.edition === 'trial' && now > cur.trial_ends_at) cur.edition = 'free';
   writeLS(cur);
@@ -37,7 +41,22 @@ export async function getTrialInfo(){
   const cur = readLS();
   const now = Date.now();
   const daysLeft = cur?.trial_ends_at ? Math.max(0, Math.ceil((cur.trial_ends_at - now)/86400000)) : 0;
-  return { daysLeft };
+  return {
+    daysLeft,
+    clockTamperDetected: cur?.clock_tamper_detected || false
+  };
+}
+
+export async function getLicenseStatus(){
+  const cur = readLS();
+  const edition = await getEdition();
+  const trialInfo = await getTrialInfo();
+
+  return {
+    edition,
+    ...trialInfo,
+    installDate: cur?.install_at ? new Date(cur.install_at) : null
+  };
 }
 
 export const FREE_LIMITS = { maxProjects: 2, maxEdgesPerProject: 150 };

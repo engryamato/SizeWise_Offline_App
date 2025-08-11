@@ -32,3 +32,9 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+# Build outputs
+.next/
+out/
+dist-electron/

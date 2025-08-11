@@ -8,7 +8,18 @@ export async function openDb(): Promise<DB> {
   if (dbPromise) return dbPromise;
   dbPromise = (async () => {
     // @ts-ignore - global module from sqlite wasm loader
-    const sqlite3 = await (window as any).sqlite3InitModule({ locateFile: (f: string) => `/sqlite/${f}` });
+    // Determine SQLite file location based on environment
+    const locateFile = (file: string) => {
+      // Check if running in Electron
+      if (typeof window !== 'undefined' && (window as any).electronAPI) {
+        return (window as any).electronAPI.getSQLitePath(file);
+      }
+
+      // Default web path
+      return `/sqlite/${file}`;
+    };
+
+    const sqlite3 = await (window as any).sqlite3InitModule({ locateFile });
     const db = new sqlite3.oo1.OpfsDb('sizewise.db');
     db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`);
     return db;

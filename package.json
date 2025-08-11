@@ -2,19 +2,91 @@
   "name": "sizewise",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run dev:electron",
+    "dev:web": "next dev -p 3000",
+    "dev:el-compile": "tsc -p electron/tsconfig.json -w",
+    "dev:el-run": "wait-on http://localhost:3000 dist-electron/main.js && nodemon -q -w dist-electron -e js,cjs,json --exec \"electron ./dist-electron/main.js\"",
+    "dev:electron": "concurrently -k -n TSC,WEB,EL -c yellow,cyan,magenta \"npm:dev:el-compile\" \"npm:dev:web\" \"npm:dev:el-run\"",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install",
+    "typecheck": "tsc --noEmit",
+    "gate:0": "vitest run -t \"[phase0]\" && playwright test --grep \"@phase0\"",
+    "gate:1": "vitest run -t \"[phase1]\" && playwright test --grep \"@phase1\"",
+    "gate:2": "vitest run -t \"[phase2]\" && playwright test --grep \"@phase2\"",
+    "gate:3": "vitest run -t \"[phase3]\" && playwright test --grep \"@phase3\"",
+    "gate:auth": "vitest run -t \"[phaseAuth]\" && playwright test --grep \"@phaseAuth\"",
+    "build:static": "next build && next export",
+    "start:static": "serve -s out -l 3000",
+    "build:electron": "next build && next export && electron-builder",
+    "electron": "electron ."
   },
   "dependencies": {
+    "@sqlite.org/sqlite-wasm": "^3.50.3-build1",
     "next": "14.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "zustand": "4.5.2",
-    "zod": "3.23.8"
+    "zod": "3.23.8",
+    "zustand": "4.5.2"
   },
   "devDependencies": {
-    "typescript": "5.5.4"
+    "@playwright/test": "^1.54.2",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "24.2.1",
+    "@types/react": "19.1.9",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "concurrently": "^9.2.0",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "electronmon": "^2.0.3",
+    "jsdom": "^26.1.0",
+    "nodemon": "^3.1.10",
+    "playwright": "^1.54.2",
+    "serve": "^14.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.4"
+  },
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.sizewise.app",
+    "productName": "SizeWise",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "electron/**/*",
+      "public/sqlite/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "out",
+        "to": "web"
+      },
+      {
+        "from": "public/sqlite",
+        "to": "web/sqlite"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

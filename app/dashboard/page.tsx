@@ -6,10 +6,16 @@ import ProjectList from '../../components/ProjectList';
 import UpdateToast from '../../components/UpdateToast';
 import { bootstrapLicense } from '../../lib/licensing';
 import { initDb } from '../../db/dao';
+import { initializeDefaultFlags } from '../../lib/featureFlags';
 
 export default function Dashboard(){
   const [ready, setReady] = useState(false);
-  useEffect(()=>{ (async()=>{ await bootstrapLicense(); await initDb(); setReady(true); })(); },[]);
+  useEffect(()=>{ (async()=>{
+    await bootstrapLicense();
+    await initDb();
+    initializeDefaultFlags();
+    setReady(true);
+  })(); },[]);
   if (!ready) return <div className="center"><div className="panel">Loading offline engine…</div></div>;
   return (
     <>

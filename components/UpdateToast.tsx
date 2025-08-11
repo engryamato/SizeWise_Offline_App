@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 export default function UpdateToast(){
   const [show, setShow] = useState(false);
   useEffect(()=>{
-    if (!('serviceWorker' in navigator)) return;
+    // Don't register SW update listener in Electron
+    if (!('serviceWorker' in navigator) || (window as any).electronAPI) return;
     navigator.serviceWorker.getRegistration().then((reg)=>{
       if (!reg) return;
       reg.addEventListener('updatefound', ()=>setShow(true));

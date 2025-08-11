@@ -110,14 +110,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Build application
-        run: npm run build
-
-      - name: Start application and run E2E tests
-        run: |
-          npm run start &
-          npx wait-on http://localhost:3000 --timeout 60000
-          npm run e2e
+      - name: Run E2E tests (Playwright manages server)
+        run: npm run e2e
 
       - name: Upload E2E test results
         if: always()

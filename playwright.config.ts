@@ -65,7 +65,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? 'npm run build && npm run start' : 'npm run dev',
+    // Use static export in CI since next.config output is 'export'
+    command: process.env.CI ? 'npm run build:static && npm run start:static' : 'npm run dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

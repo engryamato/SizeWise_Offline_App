@@ -1,25 +1,10 @@
 name: CI
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
-    branches: ["**"]
-    paths:
-      - "app/**"
-      - "components/**"
-      - "lib/**"
-      - "core/**"
-      - "db/**"
-      - "public/**"
-      - "e2e/**"
-      - "next.config.*"
-      - "package.json"
-      - "package-lock.json"
-      - "pnpm-lock.yaml"
-      - "yarn.lock"
-      - "playwright.config.*"
-      - ".github/workflows/ci.yml"
+    branches: ["main"]
+  push:
+    branches: ["main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    strategy:
-      fail-fast: true
+    outputs:
+      run-e2e: ${{ steps.diff.outputs.app_changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,6 +39,29 @@ jobs:
 
       - name: Run unit and integration tests
         run: npm run test:coverage
+      - name: Determine if app-impacting files changed
+        id: diff
+        run: |
+          echo "app_changed=false" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --prune --depth=1 origin "${{ github.base_ref }}"
+            BASE_SHA=$(git rev-parse origin/${{ github.base_ref }})
+            HEAD_SHA=${{ github.sha }}
+            echo "Comparing $BASE_SHA...$HEAD_SHA"
+            CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | tr '\n' ' ')
+          else
+            # push to main: always consider as impacting
+            CHANGED="force-run-on-push"
+          fi
+          echo "Changed files: $CHANGED"
+          case "$CHANGED" in
+            *"app/"*|*"components/"*|*"lib/"*|*"core/"*|*"db/"*|*"public/"*|*"e2e/"*|*"next.config"*|*"package.json"*|*"package-lock.json"*|*"pnpm-lock.yaml"*|*"yarn.lock"*|*"playwright.config"*)
+              echo "app_changed=true" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "app_changed=false" >> $GITHUB_OUTPUT
+              ;;
+          esac
 
       - name: Enforce coverage thresholds
         run: |
@@ -124,6 +132,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: build-test
+    if: github.event_name == 'push' || needs.build-test.outputs.run-e2e == 'true'
     permissions:
       contents: read
     steps:

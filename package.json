@@ -23,9 +23,9 @@
     "gate:2": "vitest run -t \"[phase2]\" && playwright test --grep \"@phase2\"",
     "gate:3": "vitest run -t \"[phase3]\" && playwright test --grep \"@phase3\"",
     "gate:auth": "vitest run -t \"[phaseAuth]\" && playwright test --grep \"@phaseAuth\"",
-    "build:static": "next build && next export",
+    "build:static": "next build",
     "start:static": "serve -s out -l 3000",
-    "build:electron": "next build && next export && electron-builder",
+    "build:electron": "next build && electron-builder",
     "electron": "electron ."
   },
   "dependencies": {

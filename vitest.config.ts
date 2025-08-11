@@ -11,7 +11,7 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'json-summary', 'html'],
       // Only collect coverage for core code during Phase 0; UI is covered by E2E
       include: ['lib/**/*.ts', 'db/**/*.ts', 'core/**/*.ts'],
       exclude: [

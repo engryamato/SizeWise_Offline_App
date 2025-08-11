@@ -30,56 +30,63 @@ jobs:
 
       - name: Enforce coverage thresholds
         run: |
-          node -e "
-            const fs = require('fs');
-            if (!fs.existsSync('./coverage/coverage-summary.json')) {
-              console.error('Coverage file not found');
+          node - <<'NODE'
+          const fs = require('fs');
+
+          const summaryPath = './coverage/coverage-summary.json';
+          const finalPath = './coverage/coverage-final.json';
+
+          if (!fs.existsSync(summaryPath)) {
+            console.error('Coverage file not found');
+            process.exit(1);
+          }
+
+          const coverage = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+          const { lines, functions, branches, statements } = coverage.total;
+
+          console.log('Coverage Summary:');
+          console.log('Lines:', lines.pct + '%');
+          console.log('Functions:', functions.pct + '%');
+          console.log('Branches:', branches.pct + '%');
+          console.log('Statements:', statements.pct + '%');
+
+          const coreThreshold = 85;
+
+          try {
+            if (!fs.existsSync(finalPath)) throw new Error('coverage-final.json missing');
+            const details = JSON.parse(fs.readFileSync(finalPath, 'utf8'));
+            const files = Object.keys(details);
+            const isCore = (p) => p.startsWith('lib/') || p.startsWith('db/') || p.startsWith('core/');
+            let coveredLines = 0, totalLines = 0, coveredFuncs = 0, totalFuncs = 0;
+            for (const f of files) {
+              if (!isCore(f)) continue;
+              const m = details[f];
+              coveredLines += m.l;
+              totalLines += m.l + m.u;
+              coveredFuncs += m.f;
+              totalFuncs += m.f + m.uf;
+            }
+            const linePct = totalLines ? Math.round((coveredLines / totalLines) * 100) : 100;
+            const funcPct = totalFuncs ? Math.round((coveredFuncs / totalFuncs) * 100) : 100;
+            console.log(`Core coverage -> Lines: ${linePct}% Functions: ${funcPct}%`);
+            if (linePct < coreThreshold) {
+              console.error(`Core line coverage (${linePct}%) is below threshold (${coreThreshold}%)`);
               process.exit(1);
             }
-            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
-            const { lines, functions, branches, statements } = coverage.total;
-            
-            console.log('Coverage Summary:');
-            console.log('Lines:', lines.pct + '%');
-            console.log('Functions:', functions.pct + '%');
-            console.log('Branches:', branches.pct + '%');
-            console.log('Statements:', statements.pct + '%');
-            
-            const coreThreshold = 85;
-            // Enforce thresholds only on core modules (lib/, db/, core/) during Phase 0
-            try {
-              const details = JSON.parse(fs.readFileSync('./coverage/coverage-final.json', 'utf8'));
-              const files = Object.keys(details);
-              const isCore = (p) => p.startsWith('lib/') || p.startsWith('db/') || p.startsWith('core/');
-              let coveredLines = 0, totalLines = 0, coveredFuncs = 0, totalFuncs = 0;
-              for (const f of files) {
-                if (!isCore(f)) continue;
-                const m = details[f];
-                coveredLines += m.l;
-                totalLines += m.l + m.u;
-                coveredFuncs += m.f;
-                totalFuncs += m.f + m.uf;
-              }
-              const linePct = totalLines ? Math.round((coveredLines / totalLines) * 100) : 100;
-              const funcPct = totalFuncs ? Math.round((coveredFuncs / totalFuncs) * 100) : 100;
-              console.log(`Core coverage → Lines: ${linePct}% Functions: ${funcPct}%`);
-              if (linePct < coreThreshold) {
-                console.error(`❌ Core line coverage (${linePct}%) is below threshold (${coreThreshold}%)`);
-                process.exit(1);
-              }
-              if (funcPct < coreThreshold) {
-                console.error(`❌ Core function coverage (${funcPct}%) is below threshold (${coreThreshold}%)`);
-                process.exit(1);
-              }
-            } catch (e) {
-              console.warn('Could not compute per-directory core coverage, falling back to total. Reason:', e.message);
-              if (lines.pct < coreThreshold || functions.pct < coreThreshold) {
-                console.error('❌ Coverage below threshold');
-                process.exit(1);
-              }
+            if (funcPct < coreThreshold) {
+              console.error(`Core function coverage (${funcPct}%) is below threshold (${coreThreshold}%)`);
+              process.exit(1);
             }
-            console.log('✅ Coverage thresholds met');
-          "
+          } catch (e) {
+            console.warn('Could not compute per-directory core coverage, falling back to total. Reason:', e.message);
+            if (lines.pct < coreThreshold || functions.pct < coreThreshold) {
+              console.error('Coverage below threshold');
+              process.exit(1);
+            }
+          }
+
+          console.log('Coverage thresholds met');
+          NODE
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

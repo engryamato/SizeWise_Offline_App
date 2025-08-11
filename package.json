@@ -3,10 +3,11 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev:electron",
-    "dev:web": "next dev -p 3000",
+    "dev:build": "next build",
+    "dev:serve": "serve -s out -l 3000",
     "dev:el-compile": "tsc -p electron/tsconfig.json -w",
     "dev:el-run": "wait-on http://localhost:3000 dist-electron/main.js && nodemon -q -w dist-electron -e js,cjs,json --exec \"electron ./dist-electron/main.js\"",
-    "dev:electron": "concurrently -k -n TSC,WEB,EL -c yellow,cyan,magenta \"npm:dev:el-compile\" \"npm:dev:web\" \"npm:dev:el-run\"",
+    "dev:electron": "npm run dev:build && concurrently -k -n TSC,SERVE,EL -c yellow,cyan,magenta \"npm:dev:el-compile\" \"npm:dev:serve\" \"npm:dev:el-run\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -29,10 +30,13 @@
     "electron": "electron ."
   },
   "dependencies": {
+    "@react-three/fiber": "^8.18.0",
     "@sqlite.org/sqlite-wasm": "^3.50.3-build1",
-    "next": "14.2.5",
+    "framer-motion": "^12.23.12",
+    "next": "^14.2.31",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "three": "^0.152.2",
     "zod": "3.23.8",
     "zustand": "4.5.2"
   },
@@ -43,6 +47,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "24.2.1",
     "@types/react": "19.1.9",
+    "@types/three": "^0.179.0",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^3.2.4",
     "concurrently": "^9.2.0",
@@ -52,7 +57,7 @@
     "jsdom": "^26.1.0",
     "nodemon": "^3.1.10",
     "playwright": "^1.54.2",
-    "serve": "^14.2.4",
+    "serve": "^10.0.2",
     "typescript": "^5.5.4",
     "vitest": "^3.2.4",
     "wait-on": "^8.0.4"

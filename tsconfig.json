@@ -29,7 +29,8 @@
     "db",
     "lib",
     "public/sw.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }

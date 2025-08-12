@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "npm run dev:electron",
     "dev:build": "next build",
-    "dev:serve": "serve -s out -l 3000",
+    "dev:serve": "http-server out -p 3000 -c-1",
     "dev:el-compile": "tsc -p electron/tsconfig.json -w",
     "dev:el-run": "wait-on http://localhost:3000 dist-electron/main.js && nodemon -q -w dist-electron -e js,cjs,json --exec \"electron ./dist-electron/main.js\"",
     "dev:electron": "npm run dev:build && concurrently -k -n TSC,SERVE,EL -c yellow,cyan,magenta \"npm:dev:el-compile\" \"npm:dev:serve\" \"npm:dev:el-run\"",
@@ -25,7 +25,7 @@
     "gate:3": "vitest run -t \"[phase3]\" && playwright test --grep \"@phase3\"",
     "gate:auth": "vitest run -t \"[phaseAuth]\" && playwright test --grep \"@phaseAuth\"",
     "build:static": "next build",
-    "start:static": "serve -s out -l 3000",
+    "start:static": "http-server out -p 3000 -c-1",
     "build:electron": "next build && electron-builder",
     "electron": "electron ."
   },
@@ -55,10 +55,10 @@
     "electron": "^37.2.6",
     "electron-builder": "^26.0.12",
     "electronmon": "^2.0.3",
+    "http-server": "^14.1.1",
     "jsdom": "^26.1.0",
     "nodemon": "^3.1.10",
     "playwright": "^1.54.2",
-    "serve": "^10.0.2",
     "typescript": "^5.5.4",
     "vitest": "^3.2.4",
     "wait-on": "^8.0.4"

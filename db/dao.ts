@@ -3,6 +3,15 @@ import { migrate } from './migrations';
 import { ulid } from '../lib/ids';
 import { FREE_LIMITS } from '../lib/licensing';
 import { DeviceVault } from '../lib/vault';
+import {
+  validateProjectName,
+  validateProjectDescription,
+  validateCategory,
+  validateUnitSystem,
+  validateUlid,
+  validateNumeric,
+  validateJsonData
+} from '../lib/inputValidation';
 
 // Error types for free tier limits
 export class FreeTierLimitError extends Error {
@@ -22,6 +31,33 @@ export async function listProjects(): Promise<{id:string; name:string; updated_a
 }
 
 export async function createProject(name: string, unit: 'imperial'|'si', category: string = 'residential', description: string = ''){
+  // Validate inputs
+  const nameValidation = validateProjectName(name);
+  if (!nameValidation.isValid) {
+    throw new Error(nameValidation.error);
+  }
+
+  const descValidation = validateProjectDescription(description);
+  if (!descValidation.isValid) {
+    throw new Error(descValidation.error);
+  }
+
+  const categoryValidation = validateCategory(category);
+  if (!categoryValidation.isValid) {
+    throw new Error(categoryValidation.error);
+  }
+
+  const unitValidation = validateUnitSystem(unit);
+  if (!unitValidation.isValid) {
+    throw new Error(unitValidation.error);
+  }
+
+  // Use sanitized values
+  const sanitizedName = nameValidation.sanitized!;
+  const sanitizedDescription = descValidation.sanitized!;
+  const sanitizedCategory = categoryValidation.sanitized!;
+  const sanitizedUnit = unitValidation.sanitized! as 'imperial'|'si';
+
   // Check free tier limits
   const currentProjectCount = await countProjects();
   if (currentProjectCount >= FREE_LIMITS.maxProjects) {
@@ -38,17 +74,17 @@ export async function createProject(name: string, unit: 'imperial'|'si', categor
   const id = ulid();
 
   // Insert into both projects and project_heads tables
-  (db as any).exec(`INSERT INTO projects(id,name,unit_system,rules_version,created_at,updated_at) VALUES(?,?,?,?,?,?)`, [id, name, unit, 'smacna-4e@1.0.0', now, now]);
-  (db as any).exec(`INSERT INTO project_heads(project_id,name,category,description,unit_system,rules_version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)`, [id, name, category, description, unit, 'smacna-4e@1.0.0', now, now]);
+  (db as any).exec(`INSERT INTO projects(id,name,unit_system,rules_version,created_at,updated_at) VALUES(?,?,?,?,?,?)`, [id, sanitizedName, sanitizedUnit, 'smacna-4e@1.0.0', now, now]);
+  (db as any).exec(`INSERT INTO project_heads(project_id,name,category,description,unit_system,rules_version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)`, [id, sanitizedName, sanitizedCategory, sanitizedDescription, sanitizedUnit, 'smacna-4e@1.0.0', now, now]);
 
   // Create encrypted snapshot of the new project
   try {
     const projectData = {
       id,
-      name,
-      category,
-      description,
-      unit_system: unit,
+      name: sanitizedName,
+      category: sanitizedCategory,
+      description: sanitizedDescription,
+      unit_system: sanitizedUnit,
       rules_version: 'smacna-4e@1.0.0',
       created_at: now,
       junctions: [],
@@ -72,9 +108,35 @@ export async function listJunctions(projectId: string): Promise<{id:string; kind
 }
 
 export async function createJunction(projectId: string, kind: string, x: number, y: number, z: number = 0, meta: any = {}){
+  // Validate inputs
+  const projectIdValidation = validateUlid(projectId);
+  if (!projectIdValidation.isValid) {
+    throw new Error(`Invalid project ID: ${projectIdValidation.error}`);
+  }
+
+  const xValidation = validateNumeric(x);
+  if (!xValidation.isValid) {
+    throw new Error(`Invalid x coordinate: ${xValidation.error}`);
+  }
+
+  const yValidation = validateNumeric(y);
+  if (!yValidation.isValid) {
+    throw new Error(`Invalid y coordinate: ${yValidation.error}`);
+  }
+
+  const zValidation = validateNumeric(z);
+  if (!zValidation.isValid) {
+    throw new Error(`Invalid z coordinate: ${zValidation.error}`);
+  }
+
+  const metaValidation = validateJsonData(meta);
+  if (!metaValidation.isValid) {
+    throw new Error(`Invalid meta data: ${metaValidation.error}`);
+  }
+
   const db = await openDb();
   const id = ulid();
-  (db as any).exec(`INSERT INTO junctions(id,project_id,kind,x,y,z,meta_json) VALUES(?,?,?,?,?,?,?)`, [id, projectId, kind, x, y, z, JSON.stringify(meta)]);
+  (db as any).exec(`INSERT INTO junctions(id,project_id,kind,x,y,z,meta_json) VALUES(?,?,?,?,?,?,?)`, [id, projectIdValidation.sanitized, kind, x, y, z, metaValidation.sanitized]);
   return id;
 }
 
@@ -87,6 +149,58 @@ export async function listSegments(projectId: string): Promise<{id:string; kind:
 }
 
 export async function createSegment(projectId: string, kind: string, junctionFrom: string, junctionTo: string, A: number, Dh: number, L: number, k: number = 0.0015, K: number = 0, geom: any = {}, meta: any = {}){
+  // Validate inputs
+  const projectIdValidation = validateUlid(projectId);
+  if (!projectIdValidation.isValid) {
+    throw new Error(`Invalid project ID: ${projectIdValidation.error}`);
+  }
+
+  const junctionFromValidation = validateUlid(junctionFrom);
+  if (!junctionFromValidation.isValid) {
+    throw new Error(`Invalid junction from ID: ${junctionFromValidation.error}`);
+  }
+
+  const junctionToValidation = validateUlid(junctionTo);
+  if (!junctionToValidation.isValid) {
+    throw new Error(`Invalid junction to ID: ${junctionToValidation.error}`);
+  }
+
+  // Validate numeric parameters
+  const AValidation = validateNumeric(A, 0);
+  if (!AValidation.isValid) {
+    throw new Error(`Invalid area (A): ${AValidation.error}`);
+  }
+
+  const DhValidation = validateNumeric(Dh, 0);
+  if (!DhValidation.isValid) {
+    throw new Error(`Invalid hydraulic diameter (Dh): ${DhValidation.error}`);
+  }
+
+  const LValidation = validateNumeric(L, 0);
+  if (!LValidation.isValid) {
+    throw new Error(`Invalid length (L): ${LValidation.error}`);
+  }
+
+  const kValidation = validateNumeric(k, 0);
+  if (!kValidation.isValid) {
+    throw new Error(`Invalid roughness (k): ${kValidation.error}`);
+  }
+
+  const KValidation = validateNumeric(K, 0);
+  if (!KValidation.isValid) {
+    throw new Error(`Invalid loss coefficient (K): ${KValidation.error}`);
+  }
+
+  const geomValidation = validateJsonData(geom);
+  if (!geomValidation.isValid) {
+    throw new Error(`Invalid geometry data: ${geomValidation.error}`);
+  }
+
+  const metaValidation = validateJsonData(meta);
+  if (!metaValidation.isValid) {
+    throw new Error(`Invalid meta data: ${metaValidation.error}`);
+  }
+
   // Check free tier limits for segments per project
   const currentSegmentCount = await countSegments(projectId);
   if (currentSegmentCount >= FREE_LIMITS.maxEdgesPerProject) {
@@ -100,7 +214,7 @@ export async function createSegment(projectId: string, kind: string, junctionFro
 
   const db = await openDb();
   const id = ulid();
-  (db as any).exec(`INSERT INTO segments(id,project_id,kind,junction_from,junction_to,A,Dh,L,k,K,geom_json,meta_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, [id, projectId, kind, junctionFrom, junctionTo, A, Dh, L, k, K, JSON.stringify(geom), JSON.stringify(meta)]);
+  (db as any).exec(`INSERT INTO segments(id,project_id,kind,junction_from,junction_to,A,Dh,L,k,K,geom_json,meta_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, [id, projectIdValidation.sanitized, kind, junctionFromValidation.sanitized, junctionToValidation.sanitized, A, Dh, L, k, K, geomValidation.sanitized, metaValidation.sanitized]);
   return id;
 }
 

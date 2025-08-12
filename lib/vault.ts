@@ -1,6 +1,8 @@
 'use client';
 import { isVaultEncryptionEnabled, isAuthGateVaultEnabled } from './featureFlags';
 import { Auth } from '../core/auth/AuthService';
+import { validateUlid, validateJsonData } from './inputValidation';
+import { logSecurityEvent } from './security';
 
 // Device-key vault for encrypted project snapshots
 // Uses AES-GCM encryption with device-generated keys stored in IndexedDB
@@ -191,17 +193,29 @@ async function decryptData(encrypted: ArrayBuffer, iv: ArrayBuffer): Promise<str
 export class DeviceVault {
   // Create an encrypted snapshot of project data
   static async createSnapshot(
-    projectId: string, 
-    data: any, 
+    projectId: string,
+    data: any,
     type: 'create' | 'save' | 'close' | 'manual' = 'manual'
   ): Promise<string> {
     if (!isVaultEncryptionEnabled()) {
       return ''; // Skip if encryption disabled
     }
 
+    // Validate inputs
+    const projectIdValidation = validateUlid(projectId);
+    if (!projectIdValidation.isValid) {
+      logSecurityEvent('VAULT_INVALID_PROJECT_ID', { projectId, error: projectIdValidation.error });
+      throw new VaultError(`Invalid project ID: ${projectIdValidation.error}`, 'INVALID_PROJECT_ID');
+    }
+
+    const dataValidation = validateJsonData(data);
+    if (!dataValidation.isValid) {
+      logSecurityEvent('VAULT_INVALID_DATA', { projectId: projectIdValidation.sanitized, error: dataValidation.error });
+      throw new VaultError(`Invalid data: ${dataValidation.error}`, 'INVALID_DATA');
+    }
+
     try {
-      const jsonData = JSON.stringify(data);
-      const { encrypted, iv } = await encryptData(jsonData);
+      const { encrypted, iv } = await encryptData(dataValidation.sanitized!);
       
       const snapshot: EncryptedSnapshot = {
         id: `${projectId}_${Date.now()}_${type}`,
@@ -231,6 +245,12 @@ export class DeviceVault {
   static async getSnapshot(snapshotId: string): Promise<any | null> {
     if (!isVaultEncryptionEnabled()) {
       return null;
+    }
+
+    // Validate snapshot ID format
+    if (typeof snapshotId !== 'string' || !snapshotId.trim()) {
+      logSecurityEvent('VAULT_INVALID_SNAPSHOT_ID', { snapshotId });
+      throw new VaultError('Invalid snapshot ID', 'INVALID_SNAPSHOT_ID');
     }
 
     try {

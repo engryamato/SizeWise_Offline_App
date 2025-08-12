@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { 
-  initDb, 
-  createProject, 
-  listProjects, 
-  createJunction, 
+import {
+  initDb,
+  createProject,
+  listProjects,
+  createJunction,
   listJunctions,
   createSegment,
   listSegments,
@@ -13,6 +13,7 @@ import {
   canCreateSegment,
   FreeTierLimitError
 } from './dao'
+import { ulid } from '../lib/ids'
 
 // Mock the SQLite database for integration tests
 // In a real integration test, you'd use a test database
@@ -109,19 +110,27 @@ describe('[phase0] DAO Integration Tests', () => {
     it('enforces maximum segments per project limit', async () => {
       // Mock that project already has 150 segments (the limit)
       mockDb.selectValue.mockReturnValue(150)
-      
-      await expect(createSegment('project-id', 'round', 'junction1', 'junction2', 0.1, 0.3, 10))
+
+      const projectId = ulid()
+      const junction1Id = ulid()
+      const junction2Id = ulid()
+
+      await expect(createSegment(projectId, 'round', junction1Id, junction2Id, 0.1, 0.3, 10))
         .rejects.toThrow(FreeTierLimitError)
-      
-      await expect(createSegment('project-id', 'round', 'junction1', 'junction2', 0.1, 0.3, 10))
+
+      await expect(createSegment(projectId, 'round', junction1Id, junction2Id, 0.1, 0.3, 10))
         .rejects.toThrow(/segments per project/i)
     })
 
     it('allows segment creation under limit', async () => {
       // Mock that project has 149 segments (under the limit of 150)
       mockDb.selectValue.mockReturnValue(149)
-      
-      await expect(createSegment('project-id', 'round', 'junction1', 'junction2', 0.1, 0.3, 10))
+
+      const projectId = ulid()
+      const junction1Id = ulid()
+      const junction2Id = ulid()
+
+      await expect(createSegment(projectId, 'round', junction1Id, junction2Id, 0.1, 0.3, 10))
         .resolves.toBeDefined()
     })
   })
@@ -170,13 +179,14 @@ describe('[phase0] DAO Integration Tests', () => {
 
   describe('Junction Management', () => {
     it('creates junction successfully', async () => {
-      const junctionId = await createJunction('project-id', 'supply', 10, 20, 0, { test: 'meta' })
-      
+      const projectId = ulid()
+      const junctionId = await createJunction(projectId, 'supply', 10, 20, 0, { test: 'meta' })
+
       expect(typeof junctionId).toBe('string')
       expect(junctionId.length).toBeGreaterThan(0)
       expect(mockDb.exec).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO junctions'),
-        expect.arrayContaining(['project-id', 'supply', 10, 20, 0, '{"test":"meta"}'])
+        expect.arrayContaining([projectId, 'supply', 10, 20, 0, '{"test":"meta"}'])
       )
     })
 
@@ -198,12 +208,16 @@ describe('[phase0] DAO Integration Tests', () => {
     it('creates segment successfully', async () => {
       // Mock segment count under limit
       mockDb.selectValue.mockReturnValue(50)
-      
+
+      const projectId = ulid()
+      const junction1Id = ulid()
+      const junction2Id = ulid()
+
       const segmentId = await createSegment(
-        'project-id', 
-        'round', 
-        'junction1', 
-        'junction2', 
+        projectId,
+        'round',
+        junction1Id,
+        junction2Id,
         0.1, // A
         0.3, // Dh
         10,  // L
@@ -219,10 +233,10 @@ describe('[phase0] DAO Integration Tests', () => {
         expect.stringContaining('INSERT INTO segments'),
         expect.arrayContaining([
           expect.any(String), // id
-          'project-id',
+          projectId,
           'round',
-          'junction1',
-          'junction2',
+          junction1Id,
+          junction2Id,
           0.1, 0.3, 10, 0.0015, 0,
           '{"diameter":0.3}',
           '{"material":"galvanized"}'

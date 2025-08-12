@@ -1,6 +1,7 @@
 import { app, BrowserWindow, protocol, session } from 'electron';
 import path from 'node:path';
 import url from 'node:url';
+import { isAllowedUrl, validateFilePath, SECURITY_HEADERS, logSecurityEvent } from '../lib/security';
 
 const isProd = app.isPackaged;
 
@@ -13,20 +14,66 @@ function allowUrl(u: string) {
 function setupNetworkBlocking() {
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
     const u = details.url;
-    const isProd = app.isPackaged;
-    const allowed = u.startsWith('file:') || u.startsWith('app:') || u.startsWith('devtools:') || (!isProd && /^https?:\/\/localhost:3000\//i.test(u));
+    const allowed = isAllowedUrl(u, !isProd);
     callback({ cancel: !allowed });
-    if (!allowed) console.log('🚫 Blocked network request:', u);
+    if (!allowed) {
+      logSecurityEvent('BLOCKED_NETWORK_REQUEST', { url: u, method: details.method });
+    }
   });
 }
 
 // Set up custom protocol for serving the Next.js app
 function setupAppProtocol() {
-  protocol.registerFileProtocol('app', (request, callback) => {
-    const url = request.url.substr(6); // Remove 'app://' prefix
+  protocol.handle('app', (request) => {
+    const url = request.url.slice(6); // Remove 'app://' prefix
+
+    // Validate the requested path for security
+    if (!validateFilePath(url)) {
+      logSecurityEvent('INVALID_FILE_PATH', { requestedPath: url });
+      return new Response('Forbidden', { status: 403 });
+    }
+
     const filePath = path.join(__dirname, '../out', url || 'index.html');
-    callback({ path: filePath });
+
+    // Ensure the resolved path is within the allowed directory
+    const resolvedPath = path.resolve(filePath);
+    const allowedDir = path.resolve(__dirname, '../out');
+
+    if (!resolvedPath.startsWith(allowedDir)) {
+      logSecurityEvent('PATH_TRAVERSAL_ATTEMPT', { requestedPath: url, resolvedPath });
+      return new Response('Forbidden', { status: 403 });
+    }
+
+    return new Response(require('fs').readFileSync(resolvedPath), {
+      headers: {
+        'Content-Type': getContentType(filePath),
+        ...SECURITY_HEADERS
+      }
+    });
   });
+}
+
+// Helper function to determine content type
+function getContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  const contentTypes: { [key: string]: string } = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.eot': 'application/vnd.ms-fontobject'
+  };
+
+  return contentTypes[ext] || 'application/octet-stream';
 }
 
 function createWindow() {
@@ -110,7 +157,7 @@ app.on('window-all-closed', () => {
 // Security: Prevent new window creation
 app.on('web-contents-created', (event, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    console.log('🚫 Blocked new window creation:', url);
+    logSecurityEvent('BLOCKED_NEW_WINDOW', { url });
     return { action: 'deny' };
   });
 });
@@ -118,11 +165,9 @@ app.on('web-contents-created', (event, contents) => {
 // Security: Prevent navigation to external URLs
 app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-
-    if (parsedUrl.origin !== 'http://localhost:3000' && !navigationUrl.startsWith('file:')) {
+    if (!isAllowedUrl(navigationUrl, !isProd)) {
       event.preventDefault();
-      console.log('🚫 Blocked navigation to:', navigationUrl);
+      logSecurityEvent('BLOCKED_NAVIGATION', { url: navigationUrl });
     }
   });
 });

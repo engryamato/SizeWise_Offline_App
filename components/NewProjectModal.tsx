@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createProject, canCreateProject, FreeTierLimitError } from '../db/dao';
+import { validateProjectName, validateProjectDescription } from '../lib/inputValidation';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -28,8 +29,17 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }: N
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      setError('Project name is required');
+
+    // Validate inputs on the client side
+    const nameValidation = validateProjectName(formData.name);
+    if (!nameValidation.isValid) {
+      setError(nameValidation.error!);
+      return;
+    }
+
+    const descValidation = validateProjectDescription(formData.description);
+    if (!descValidation.isValid) {
+      setError(descValidation.error!);
       return;
     }
 
@@ -38,10 +48,10 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }: N
 
     try {
       const projectId = await createProject(
-        formData.name.trim(),
+        nameValidation.sanitized!,
         formData.unitSystem,
         formData.category,
-        formData.description.trim()
+        descValidation.sanitized!
       );
       
       onProjectCreated(projectId);
@@ -79,7 +89,7 @@ export default function NewProjectModal({ isOpen, onClose, onProjectCreated }: N
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Create New Project</h2>
-          <button className="modal-close" onClick={handleClose} disabled={isSubmitting}>×</button>
+          <button type="button" className="modal-close" onClick={handleClose} disabled={isSubmitting}>×</button>
         </div>
         
         <form onSubmit={handleSubmit}>

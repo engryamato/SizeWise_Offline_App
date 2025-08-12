@@ -25,6 +25,12 @@ export default function AuthGate(){
 
         const path = location.pathname;
         const isAuthRoute = path.startsWith('/auth') || path === '/lock';
+
+        // Allow access to demo pages
+        if (path === '/auth' || path === '/demo') {
+          return;
+        }
+
         if (!hasAccount && !path.startsWith('/auth/onboarding')) {
           location.replace('/auth/onboarding'); return;
         }

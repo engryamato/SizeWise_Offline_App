@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Auth } from '@/core/auth/AuthService';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function OnboardingPage(){
   const router = useRouter();
@@ -64,7 +65,10 @@ export default function OnboardingPage(){
         {err && <p role="alert" className="text-red-400 text-sm mt-3">{err}</p>}
 
         <div className="mt-6 flex gap-3">
-          <button type="button" data-testid="onboard-submit" onClick={submit} className="flex-1 rounded-lg px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60" disabled={busy}>{busy ? 'Setting up…' : 'Create PIN & Continue'}</button>
+          <button type="button" data-testid="onboard-submit" onClick={submit} className="flex-1 rounded-lg px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 flex items-center justify-center gap-2" disabled={busy}>
+            {busy && <LoadingSpinner size="small" darkMode={true} />}
+            {busy ? 'Setting up…' : 'Create PIN & Continue'}
+          </button>
         </div>
       </div>
     </main>

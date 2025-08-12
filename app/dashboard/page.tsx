@@ -7,6 +7,7 @@ import UpdateToast from '../../components/UpdateToast';
 import { bootstrapLicense } from '../../lib/licensing';
 import { initDb } from '../../db/dao';
 import { initializeDefaultFlags } from '../../lib/featureFlags';
+import { PanelLoader } from '../../components/LoadingSpinner';
 
 export default function Dashboard(){
   const [ready, setReady] = useState(false);
@@ -16,7 +17,7 @@ export default function Dashboard(){
     initializeDefaultFlags();
     setReady(true);
   })(); },[]);
-  if (!ready) return <div className="center"><div className="panel">Loading offline engine…</div></div>;
+  if (!ready) return <PanelLoader text="Loading offline engine…" />;
   return (
     <>
       <NavBar />

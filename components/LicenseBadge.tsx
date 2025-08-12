@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { getLicenseStatus } from '../lib/licensing';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export default function LicenseBadge(){
   const [status, setStatus] = useState<{
@@ -9,12 +10,14 @@ export default function LicenseBadge(){
     clockTamperDetected: boolean;
     label: string;
     className: string;
+    isLoading: boolean;
   }>({
     edition: 'trial',
     daysLeft: 0,
     clockTamperDetected: false,
-    label: 'Loading...',
-    className: 'badge'
+    label: '',
+    className: 'badge',
+    isLoading: true
   });
 
   useEffect(()=>{ (async()=>{
@@ -47,9 +50,18 @@ export default function LicenseBadge(){
     setStatus({
       ...licenseStatus,
       label,
-      className
+      className,
+      isLoading: false
     });
   })(); },[]);
+
+  if (status.isLoading) {
+    return (
+      <div className="badge">
+        <LoadingSpinner size="small" darkMode={false} />
+      </div>
+    );
+  }
 
   return (
     <div

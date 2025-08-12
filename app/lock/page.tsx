@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Auth } from '@/core/auth/AuthService';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function LockPage(){
   const router = useRouter();
@@ -40,7 +41,10 @@ export default function LockPage(){
           <label className="block text-sm" htmlFor="pin">PIN</label>
           <div className="flex gap-2 mt-1">
             <input id="pin" data-testid="lock-pin-input" inputMode="numeric" pattern="[0-9]*" className="flex-1 rounded-lg bg-white/10 px-3 py-2" value={pin} onChange={(e)=>setPin(e.target.value)} />
-            <button type="button" data-testid="lock-unlock-btn" className="rounded-lg px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60" onClick={unlock} disabled={busy}>{busy ? 'Unlocking…' : 'Unlock'}</button>
+            <button type="button" data-testid="lock-unlock-btn" className="rounded-lg px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 flex items-center justify-center gap-2" onClick={unlock} disabled={busy}>
+              {busy && <LoadingSpinner size="small" darkMode={true} />}
+              {busy ? 'Unlocking…' : 'Unlock'}
+            </button>
           </div>
           {err && <p id="lock-error" role="alert" aria-live="assertive" className="text-red-400 text-sm mt-2">{err}</p>}
         </div>

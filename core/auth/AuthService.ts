@@ -31,7 +31,7 @@ async function derivePinHash(pin: string, salt: Uint8Array): Promise<Uint8Array>
     ['deriveBits']
   )
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_PARAMS.iterations, hash: PBKDF2_PARAMS.hash },
+    { name: 'PBKDF2', salt: salt as BufferSource, iterations: PBKDF2_PARAMS.iterations, hash: PBKDF2_PARAMS.hash },
     keyMaterial,
     PBKDF2_PARAMS.keyLen * 8
   )

@@ -104,13 +104,13 @@ function createWindow() {
   console.log('[electron] createWindow: isProd=', isProd);
 
   if (!isProd) {
-    // In development, load from the dev server
-    mainWindow.loadURL('http://localhost:3000');
+    // In development, load from the dev server - start with auth page
+    mainWindow.loadURL('http://localhost:3000/auth');
     mainWindow.webContents.openDevTools();
   } else {
-    // In production, load from the built static files
-    const indexPath = path.join(process.resourcesPath, 'web', 'index.html');
-    mainWindow.loadFile(indexPath);
+    // In production, load from the built static files - start with auth page
+    const authPath = path.join(process.resourcesPath, 'web', 'auth.html');
+    mainWindow.loadFile(authPath);
   }
 
   // Show window when ready to prevent visual flash

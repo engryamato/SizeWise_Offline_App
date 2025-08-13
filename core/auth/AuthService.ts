@@ -152,19 +152,29 @@ export const Auth = {
   },
 
   async registerWebAuthn(accountId: string): Promise<void> {
-    // TODO: Implement WebAuthn registration with local ceremony
-    // - Create options (publicKey)
-    // - navigator.credentials.create
-    // - Store publicKey JWK + credId in credentials
-    throw new Error('WebAuthn registration not implemented yet')
+    const { registerWebAuthnCredential } = await import('./WebAuthnService');
+    await registerWebAuthnCredential(accountId);
   },
 
   async authenticateWebAuthn(accountId: string): Promise<Session> {
-    // TODO: Implement WebAuthn authentication with local verification
-    // - navigator.credentials.get
-    // - Verify signature locally
-    // - Create session
-    throw new Error('WebAuthn authentication not implemented yet')
+    const { authenticateWebAuthn } = await import('./WebAuthnService');
+    const isValid = await authenticateWebAuthn(accountId);
+
+    if (!isValid) {
+      throw new Error('WebAuthn authentication failed');
+    }
+
+    // Create session on successful authentication
+    const session: Session = {
+      id: ulid(),
+      accountId,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + SESSION_CONFIG.TIMEOUT_MS
+    };
+    const db = await openDb() as any;
+    db.exec(`INSERT INTO sessions(id,account_id,created_at) VALUES(?,?,?)`, [session.id, accountId, session.createdAt]);
+    currentSession = session;
+    return session;
   },
 
   currentSession(): Session | null {

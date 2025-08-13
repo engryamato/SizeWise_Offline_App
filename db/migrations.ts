@@ -165,5 +165,36 @@ export async function migrate(){
       throw e;
     }
   });
+
+  // License storage for offline premium activation
+  apply('004_licenses', `
+    CREATE TABLE IF NOT EXISTS licenses (
+      license_key TEXT PRIMARY KEY,
+      edition TEXT NOT NULL,
+      issued_at INTEGER NOT NULL,
+      expires_at INTEGER,
+      features TEXT NOT NULL,
+      device_limit INTEGER NOT NULL,
+      activated_at INTEGER NOT NULL,
+      device_fingerprint TEXT NOT NULL,
+      metadata TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_licenses_edition ON licenses(edition);
+    CREATE INDEX IF NOT EXISTS idx_licenses_activated_at ON licenses(activated_at);
+  `);
+
+  // WebAuthn credentials for enhanced offline authentication
+  apply('005_webauthn', `
+    CREATE TABLE IF NOT EXISTS webauthn_credentials (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      credential_id TEXT NOT NULL UNIQUE,
+      public_key_jwk TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      last_used_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_webauthn_account_id ON webauthn_credentials(account_id);
+    CREATE INDEX IF NOT EXISTS idx_webauthn_credential_id ON webauthn_credentials(credential_id);
+  `);
 }
 

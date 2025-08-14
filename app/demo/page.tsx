@@ -1,6 +1,6 @@
 "use client";
 
-import { ClientOnlySpiral } from "@/components/ClientOnlySpiral";
+import ClientOnlySpiral from "@/components/ClientOnlySpiral";
 
 export default function DemoPage() {
   return (

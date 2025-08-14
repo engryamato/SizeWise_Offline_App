@@ -8,7 +8,7 @@ const SpiralAnimation = dynamic(() => import('./SpiralAnimation').then(mod => ({
   loading: () => <div className="w-full h-full bg-black" />
 })
 
-export function ClientOnlySpiral() {
+export default function ClientOnlySpiral() {
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {

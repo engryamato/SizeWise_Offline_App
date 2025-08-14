@@ -1,0 +1,160 @@
+/* Pill-shaped navigation bar styles */
+.navbar {
+  --nav-height: 64px;
+  --nav-collapsed-width: 140px;
+  
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  height: var(--nav-height);
+  background-color: var(--glass);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  width: var(--expanded-width, auto);
+  transform-origin: left center;
+  transition: width 320ms cubic-bezier(0.2, 0.7, 0.2, 1), 
+              background-color 160ms ease, 
+              border-color 160ms ease, 
+              box-shadow 160ms ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Collapsed state */
+.navbar.collapsed {
+  width: var(--nav-collapsed-width);
+  justify-content: flex-start;
+  padding: 0 14px;
+}
+
+/* Navigation track container */
+.navTrack {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Skeleton elements */
+.navSkeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: opacity 220ms ease, margin 220ms ease, width 220ms ease;
+}
+
+.navPill {
+  width: 120px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgba(236, 240, 241, 0.18);
+  transition: opacity 220ms ease, width 220ms ease;
+}
+
+.navDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(236, 240, 241, 0.3);
+}
+
+.navWide {
+  width: 240px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgba(236, 240, 241, 0.14);
+  transition: opacity 220ms ease, width 220ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Navigation links container */
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.navLink {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: color 160ms ease, background-color 160ms ease;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--text);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.navLink.active {
+  color: #9cc6ff;
+  background-color: rgba(156, 198, 255, 0.1);
+}
+
+/* Fade elements when collapsed */
+.fadeOnCollapse {
+  opacity: 1;
+  transition: opacity 220ms ease, width 220ms ease, margin 220ms ease;
+}
+
+.collapsed .fadeOnCollapse {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+}
+
+/* Retracting animation */
+.navbar.retracting {
+  animation: retractPulse 320ms cubic-bezier(0.2, 0.7, 0.2, 1) 1;
+}
+
+@keyframes retractPulse {
+  0% { transform: scaleX(1); }
+  40% { transform: scaleX(0.98); }
+  100% { transform: scaleX(1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .navbar {
+    --nav-collapsed-width: 120px;
+  }
+  
+  .navPill {
+    width: 96px;
+  }
+  
+  .navWide {
+    width: 180px;
+  }
+  
+  .navLinks {
+    gap: 12px;
+  }
+  
+  .navLink {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+/* Ensure content doesn't overlap with fixed navigation */
+.contentOffset {
+  padding-top: calc(var(--nav-height) + 48px);
+}

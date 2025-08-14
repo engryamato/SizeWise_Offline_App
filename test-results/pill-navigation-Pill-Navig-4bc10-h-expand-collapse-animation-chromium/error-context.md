@@ -1,21 +1,12 @@
 # Page snapshot
 
 ```yaml
+- banner "Top navigation"
+- heading "Test Pill Navigation" [level=1]
+- text: Testing the pill navigation component.
+- heading "Test Card 1" [level=3]
+- text: This is a test card
+- heading "Test Card 2" [level=3]
+- text: This is another test card
 - alert
-- link "Dashboard":
-  - /url: /dashboard/
-- text: /
-- link "Air Duct Sizer":
-  - /url: /tools/air-duct-sizer/
-- text: /
-- link "Settings":
-  - /url: /settings/
-- text: /
-- link "License":
-  - /url: /license/
-- status: "Trial: 14 days left"
-- heading "Air Duct Sizer" [level=1]
-- text: 3D Canvas Placeholder — plug R3F/Three here (Phase 2)
-- heading "Properties" [level=3]
-- text: Inputs and live results will appear here.
 ```

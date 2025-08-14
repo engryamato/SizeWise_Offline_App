@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import styles from './PillNavigation.module.css';
 
 export interface NavigationItem {
@@ -18,7 +18,7 @@ export interface PillNavigationProps {
 
 const defaultItems: NavigationItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/tools/air-duct-sizer', label: 'Air Duct Sizer' },
+  { href: '/tools/air-duct-sizer', label: 'Tools' },
   { href: '/settings', label: 'Settings' },
   { href: '/license', label: 'License' },
 ];
@@ -33,6 +33,35 @@ export default function PillNavigation({
   const [isRetracting, setIsRetracting] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      // Check if we're in test environment
+      const isTestEnvironment = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+        !window.SharedArrayBuffer;
+
+      if (isTestEnvironment) {
+        // Test environment logout - clear localStorage
+        localStorage.removeItem('sizewise-test-account');
+        console.log('Test environment logout: localStorage cleared');
+      } else {
+        // Production environment logout - clear database session
+        const { Auth } = await import('@/core/auth/AuthService');
+        await Auth.logout();
+        console.log('Production logout: database session cleared');
+      }
+
+      // Navigate to auth page (will show appropriate modal based on account state)
+      router.push('/auth');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to auth page even if logout fails
+      router.push('/auth');
+    }
+  };
 
   // Measure natural expanded width
   const measureExpandedWidth = () => {
@@ -109,10 +138,6 @@ export default function PillNavigation({
       data-testid={testId}
     >
       <div className={styles.navTrack}>
-        <div className={styles.navSkeleton}>
-          <span className={styles.navDot}></span>
-          <span className={`${styles.navPill} ${styles.fadeOnCollapse}`}></span>
-        </div>
         <div className={`${styles.navWide} ${styles.fadeOnCollapse}`}>
           {isExpanded && (
             <div className={styles.navLinks}>
@@ -127,13 +152,27 @@ export default function PillNavigation({
                   {item.label}
                 </Link>
               ))}
+
+              {/* Logout button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLogout();
+                }}
+                className={`${styles.navLink} ${styles.logoutButton}`}
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
             </div>
           )}
         </div>
-        <div className={`${styles.navSkeleton} ${styles.fadeOnCollapse}`}>
-          <span className={styles.navPill} style={{ width: '80px' }}></span>
-          <span className={styles.navDot}></span>
-        </div>
+
       </div>
     </nav>
   );

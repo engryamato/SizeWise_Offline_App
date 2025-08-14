@@ -1,9 +1,10 @@
-import NavBar from '../../components/NavBar';
+import PillNavigation from '../../components/PillNavigation';
+import styles from '../../components/PillNavigation.module.css';
 export default function About(){
   return (
     <>
-      <NavBar />
-      <div className="container">
+      <PillNavigation />
+      <div className={`container ${styles.contentOffset}`}>
         <h1>About</h1>
         <div className="panel">
           <div>SizeWise Suite — Offline Edition</div>

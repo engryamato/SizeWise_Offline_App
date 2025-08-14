@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import NavBar from '../../components/NavBar';
+import PillNavigation from '../../components/PillNavigation';
+import styles from '../../components/PillNavigation.module.css';
 import { bootstrapLicense, getEdition, getTrialInfo, FREE_LIMITS, getActivatedLicense } from '../../lib/licensing';
 
 export default function LicensePage(){
@@ -29,8 +30,8 @@ export default function LicensePage(){
   if (state.loading) {
     return (
       <>
-        <NavBar />
-        <div className="container">
+        <PillNavigation />
+        <div className={`container ${styles.contentOffset}`}>
           <h1>License & Limits</h1>
           <div className="panel">
             <p>Loading license information...</p>
@@ -42,8 +43,8 @@ export default function LicensePage(){
 
   return (
     <>
-      <NavBar />
-      <div className="container">
+      <PillNavigation />
+      <div className={`container ${styles.contentOffset}`}>
         <h1>License & Limits</h1>
 
         <div className="panel">

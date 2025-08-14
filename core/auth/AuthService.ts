@@ -260,6 +260,25 @@ export const Auth = {
     currentSession = null
   },
 
+  async logout(): Promise<void> {
+    // Clear current session from database if it exists
+    if (currentSession) {
+      try {
+        const db = await openDb() as any;
+        db.exec(`DELETE FROM sessions WHERE id = ?`, [currentSession.id]);
+        logSecurityEvent('USER_LOGOUT', {
+          sessionId: currentSession.id,
+          accountId: currentSession.accountId
+        });
+      } catch (error) {
+        console.error('Failed to clear session from database:', error);
+      }
+    }
+
+    // Clear in-memory session
+    this.lock();
+  },
+
   async unlockWithSession(session: Session): Promise<void> {
     // Later: hydrate the in-memory vault key here based on session
     // For now, just set the session reference

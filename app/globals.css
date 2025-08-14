@@ -29,14 +29,7 @@ body {
   margin: 0 auto;
   padding: 32px;
 }
-.topbar {
-  position: sticky;
-  top: 0;
-  backdrop-filter: blur(10px);
-  background: var(--glass);
-  border-bottom: 1px solid var(--stroke);
-  z-index: 10;
-}
+/* Old topbar styles removed - now using PillNavigation */
 .row {
   display: flex;
   gap: 16px;

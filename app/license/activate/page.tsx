@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import NavBar from '../../../components/NavBar';
+import PillNavigation from '../../../components/PillNavigation';
+import styles from '../../../components/PillNavigation.module.css';
 import { activateLicense, validateLicenseKey } from '../../../lib/licensing';
 
 export default function ActivateLicensePage() {
@@ -72,8 +73,8 @@ export default function ActivateLicensePage() {
   if (success) {
     return (
       <>
-        <NavBar />
-        <div className="container">
+        <PillNavigation />
+        <div className={`container ${styles.contentOffset}`}>
           <div className="panel text-center">
             <h1>✅ License Activated!</h1>
             <p>Your SizeWise license has been successfully activated.</p>
@@ -87,8 +88,8 @@ export default function ActivateLicensePage() {
 
   return (
     <>
-      <NavBar />
-      <div className="container">
+      <PillNavigation />
+      <div className={`container ${styles.contentOffset}`}>
         <h1>Activate License</h1>
         
         <div className="panel">

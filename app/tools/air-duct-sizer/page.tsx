@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import NavBar from '../../../components/NavBar';
+import PillNavigation from '../../../components/PillNavigation';
+import styles from '../../../components/PillNavigation.module.css';
 
 export default function AirDuctSizerPage(){
   const hostRef = useRef<HTMLDivElement|null>(null);
@@ -15,8 +16,8 @@ export default function AirDuctSizerPage(){
   },[]);
   return (
     <>
-      <NavBar />
-      <div className="container">
+      <PillNavigation />
+      <div className={`container ${styles.contentOffset}`}>
         <h1 style={{margin:'6px 0 18px'}}>Air Duct Sizer</h1>
         <div className="grid" style={{gridTemplateColumns:'2fr 1fr'}}>
           <div ref={hostRef} />

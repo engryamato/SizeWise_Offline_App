@@ -44,34 +44,9 @@
   transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Skeleton elements */
-.navSkeleton {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: opacity 220ms ease, margin 220ms ease, width 220ms ease;
-}
-
-.navPill {
-  width: 120px;
-  height: 14px;
-  border-radius: 9999px;
-  background: rgba(236, 240, 241, 0.18);
-  transition: opacity 220ms ease, width 220ms ease;
-}
-
-.navDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(236, 240, 241, 0.3);
-}
+/* Skeleton elements - removed for cleaner design */
 
 .navWide {
-  width: 240px;
-  height: 14px;
-  border-radius: 9999px;
-  background: rgba(236, 240, 241, 0.14);
   transition: opacity 220ms ease, width 220ms ease;
   display: flex;
   align-items: center;
@@ -85,6 +60,7 @@
   gap: 16px;
   opacity: 1;
   transition: opacity 200ms ease;
+  pointer-events: auto; /* Ensure navigation links are clickable */
 }
 
 .navLink {
@@ -107,16 +83,33 @@
   background-color: rgba(156, 198, 255, 0.1);
 }
 
+/* Logout button styles */
+.logoutButton {
+  display: flex;
+  align-items: center;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.logoutButton:hover {
+  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
 /* Fade elements when collapsed */
 .fadeOnCollapse {
   opacity: 1;
   transition: opacity 220ms ease, width 220ms ease, margin 220ms ease;
+  pointer-events: none; /* Disable pointer events on skeleton elements */
 }
 
 .collapsed .fadeOnCollapse {
   opacity: 0;
   width: 0;
   margin: 0;
+  pointer-events: none;
 }
 
 /* Retracting animation */
@@ -135,19 +128,11 @@
   .navbar {
     --nav-collapsed-width: 120px;
   }
-  
-  .navPill {
-    width: 96px;
-  }
-  
-  .navWide {
-    width: 180px;
-  }
-  
+
   .navLinks {
     gap: 12px;
   }
-  
+
   .navLink {
     font-size: 13px;
     padding: 6px 10px;

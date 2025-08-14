@@ -50,7 +50,7 @@ test.describe('Pill Navigation @phase0', () => {
     
     // Navigation links should be visible
     await expect(page.getByText('Dashboard')).toBeVisible();
-    await expect(page.getByText('Air Duct Sizer')).toBeVisible();
+    await expect(page.getByText('Tools')).toBeVisible();
     await expect(page.getByText('Settings')).toBeVisible();
     await expect(page.getByText('License')).toBeVisible();
   });

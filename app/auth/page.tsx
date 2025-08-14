@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Auth } from "@/core/auth/AuthService";
 import { getLicenseStatus } from "@/lib/licensing";
 import ClientOnlySpiral from "@/components/ClientOnlySpiral";
+import MorphingGlassButton from "@/components/MorphingGlassButton";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -58,20 +59,24 @@ export default function AuthPage() {
         // Get license status
         const licenseStatus = await getLicenseStatus();
 
-        // Auto-redirect based on authentication state
-        console.log('Auth state:', { hasAccount, isAuthenticated });
-        if (isAuthenticated) {
-          // Already authenticated - go to dashboard
-          console.log('Already authenticated, redirecting to dashboard...');
-          setTimeout(() => router.push('/dashboard'), 1500);
-        } else if (!hasAccount) {
-          // No account exists - redirect to onboarding
-          console.log('No account found, redirecting to onboarding...');
-          setTimeout(() => router.push('/auth/onboarding'), 1000);
-        } else {
-          // Has account but not authenticated - redirect to lock page
-          console.log('Account exists but not authenticated, redirecting to lock...');
-          setTimeout(() => router.push('/lock'), 1000);
+        // Auto-redirect based on authentication state (unless testing)
+        const isTestingMorphButton = typeof window !== 'undefined' &&
+          window.location.search.includes('test-morph-button');
+
+        console.log('Auth state:', { hasAccount, isAuthenticated, isTestingMorphButton });
+
+        if (!isTestingMorphButton) {
+          if (isAuthenticated) {
+            // Already authenticated - go to dashboard
+            console.log('Already authenticated, redirecting to dashboard...');
+            setTimeout(() => router.push('/dashboard'), 1500);
+          } else if (!hasAccount) {
+            // No account exists - stay on auth page for onboarding via morphing button
+            console.log('No account found, staying on auth page for onboarding...');
+          } else {
+            // Has account but not authenticated - stay on auth page for sign-in via morphing button
+            console.log('Account exists but not authenticated, staying on auth page for sign-in...');
+          }
         }
 
         setAuthState({
@@ -82,9 +87,15 @@ export default function AuthPage() {
         });
       } catch (error) {
         console.error('Auth state check failed:', error);
-        // If database check fails, assume no account exists and redirect to onboarding
-        console.log('Database check failed, redirecting to onboarding...');
-        setTimeout(() => router.push('/auth/onboarding'), 1000);
+
+        const isTestingMorphButton = typeof window !== 'undefined' &&
+          window.location.search.includes('test-morph-button');
+
+        if (!isTestingMorphButton) {
+          // If database check fails, assume no account exists - stay on auth page with morphing button
+          console.log('Database check failed, staying on auth page for onboarding...');
+        }
+
         setAuthState({
           hasAccount: false,
           isAuthenticated: false,
@@ -104,6 +115,12 @@ export default function AuthPage() {
     <main className="relative h-screen w-screen overflow-hidden bg-black text-white">
       {/* Animated Spiral Background */}
       <ClientOnlySpiral />
+
+      {/* Morphing Glass Button */}
+      <MorphingGlassButton
+        initialView={authState.hasAccount ? 'signin' : 'onboarding'}
+        autoExpand={!authState.loading}
+      />
     </main>
   );
 }

@@ -147,7 +147,7 @@ test.describe('Logout Functionality @phase0', () => {
     
     // Should show all navigation items including logout
     await expect(page.getByText('Dashboard')).toBeVisible();
-    await expect(page.getByText('Air Duct Sizer')).toBeVisible();
+    await expect(page.getByText('Duct Sizer')).toBeVisible();
     await expect(page.getByText('Settings')).toBeVisible();
     await expect(page.getByText('License')).toBeVisible();
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible();

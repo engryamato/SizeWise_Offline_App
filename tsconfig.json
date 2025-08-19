@@ -8,7 +8,10 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@/core/*": ["app/core/*"],
+      "@/docs/*": ["app/docs/*"],
+      "@/tests/*": ["app/tests/*"]
     },
     "allowJs": true,
     "skipLibCheck": true,

@@ -8,15 +8,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./app/tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary', 'html'],
       // Only collect coverage for core code during Phase 0; UI is covered by E2E
-      include: ['lib/**/*.ts', 'db/**/*.ts', 'core/**/*.ts'],
+      include: ['lib/**/*.ts', 'db/**/*.ts', 'app/core/**/*.ts'],
       exclude: [
         'node_modules/',
-        'tests/',
+        'app/tests/',
         'e2e/',
         '**/*.d.ts',
         '**/*.config.*',
@@ -51,7 +51,8 @@ export default defineConfig({
       '@/components': path.resolve(__dirname, './components'),
       '@/lib': path.resolve(__dirname, './lib'),
       '@/db': path.resolve(__dirname, './db'),
-      '@/app': path.resolve(__dirname, './app')
+      '@/app': path.resolve(__dirname, './app'),
+      '@/core': path.resolve(__dirname, './app/core')
     }
   }
 })

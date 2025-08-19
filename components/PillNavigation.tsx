@@ -18,7 +18,7 @@ export interface PillNavigationProps {
 
 const defaultItems: NavigationItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/tools/air-duct-sizer', label: 'Tools' },
+  { href: '/tools/duct-sizer', label: 'Tools' },
   { href: '/settings', label: 'Settings' },
   { href: '/license', label: 'License' },
 ];

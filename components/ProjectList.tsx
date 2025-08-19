@@ -17,7 +17,7 @@ export default function ProjectList() {
     // Refresh the project list
     loadProjects();
     // Optionally navigate to the new project
-    // location.href = `/tools/air-duct-sizer?project=${projectId}`;
+    // location.href = `/tools/duct-sizer?project=${projectId}`;
   };
 
   return (
@@ -49,7 +49,7 @@ export default function ProjectList() {
                 <small className="muted">{new Date(r.updated_at).toLocaleString()}</small>
               </div>
               <div style={{display:'flex',gap:8,marginTop:10}}>
-                <button className="btn" onClick={()=>location.href=`/tools/air-duct-sizer?project=${r.id}`}>Open</button>
+                <button className="btn" onClick={()=>location.href=`/tools/duct-sizer?project=${r.id}`}>Open</button>
                 <button className="btn" disabled>Duplicate</button>
                 <button className="btn" disabled>Export</button>
               </div>

@@ -46,9 +46,9 @@ test.describe('PWA Offline Functionality', () => {
     await context.setOffline(true);
     
     // Test navigation to different pages
-    await page.click('a[href="/tools/air-duct-sizer"]');
-    await expect(page).toHaveURL('/tools/air-duct-sizer');
-    await expect(page.getByText('Air Duct Sizer')).toBeVisible();
+    await page.click('a[href="/tools/duct-sizer"]');
+    await expect(page).toHaveURL('/tools/duct-sizer');
+    await expect(page.getByText('Duct Sizer')).toBeVisible();
     
     // Navigate to settings
     await page.click('a[href="/settings"]');

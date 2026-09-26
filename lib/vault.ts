@@ -1,6 +1,6 @@
 'use client';
 import { isVaultEncryptionEnabled, isAuthGateVaultEnabled } from './featureFlags';
-import { Auth } from '../core/auth/AuthService';
+import { Auth } from '../app/core/auth/AuthService';
 import { validateUlid, validateJsonData } from './inputValidation';
 import { logSecurityEvent } from './security';
 
@@ -137,7 +137,7 @@ async function storeDeviceKey(key: CryptoKey): Promise<void> {
 async function encryptData(data: string): Promise<{ encrypted: ArrayBuffer; iv: ArrayBuffer }> {
   // Optional auth gate: require unlocked session before allowing encryption
   if (isAuthGateVaultEnabled()) {
-    const session = (await import('../core/auth/AuthService')).Auth.currentSession()
+    const session = (await import('../app/core/auth/AuthService')).Auth.currentSession()
     if (!session) throw new VaultError('Vault is locked', 'VAULT_LOCKED')
   }
   const key = await getDeviceKey();
@@ -167,7 +167,7 @@ async function encryptData(data: string): Promise<{ encrypted: ArrayBuffer; iv: 
 async function decryptData(encrypted: ArrayBuffer, iv: ArrayBuffer): Promise<string> {
   // Optional auth gate: require unlocked session before allowing decryption
   if (isAuthGateVaultEnabled()) {
-    const session = (await import('../core/auth/AuthService')).Auth.currentSession()
+    const session = (await import('../app/core/auth/AuthService')).Auth.currentSession()
     if (!session) throw new VaultError('Vault is locked', 'VAULT_LOCKED')
   }
   const key = await getDeviceKey();

@@ -110,10 +110,10 @@ test.describe('Dashboard Project Management', () => {
   test('navigation links work correctly', async ({ page }) => {
     await page.goto('/dashboard');
     
-    // Test navigation to Air Duct Sizer
-    await page.click('a[href="/tools/air-duct-sizer"]');
-    await expect(page).toHaveURL('/tools/air-duct-sizer');
-    await expect(page.getByText('Air Duct Sizer')).toBeVisible();
+    // Test navigation to Duct Sizer
+    await page.click('a[href="/tools/duct-sizer"]');
+    await expect(page).toHaveURL('/tools/duct-sizer');
+    await expect(page.getByText('Duct Sizer')).toBeVisible();
     
     // Navigate back to dashboard
     await page.click('a[href="/dashboard"]');

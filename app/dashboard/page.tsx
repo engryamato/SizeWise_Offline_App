@@ -52,7 +52,7 @@ export default function Dashboard(){
           </div>
         </div>
         <div className="grid" style={{marginBottom:20}}>
-          <ToolCard title="Air Duct Sizer" subtitle="Draw ducts. Live airflow & pressure." href="/tools/air-duct-sizer" />
+          <ToolCard title="Duct Sizer" subtitle="Draw ducts. Live airflow & pressure." href="/tools/duct-sizer" />
           <div className="card" aria-disabled>
             <div className="badge">Coming soon</div>
             <h3>Grease Duct Sizer</h3>
